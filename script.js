@@ -24,27 +24,30 @@ const gameBoard = function () {
                 return true
             }
         }
+        return false
     }
 
-    const gameArray = [
+    let gameArray = [
         '','','',
         '','','',
         '','','']
 
     place = (player, i) => gameArray.splice(i, 1, player);
 
-    return { place, gameArray, checkWin};
+    resetArray = () => gameArray = ['', '', '', '', '', '', '', '', ''];
+
+    return { place, gameArray, checkWin, resetArray};
 
 }();
 
 
 const player = function() {
 
-    const options = document.querySelectorAll(".options > button");
+    const options = document.querySelectorAll(".X, .O");
     let chosenPlayer = null;
 
     const getPlayer = function() {
-        options.forEach(option => {
+        options.forEach(option=> {
             option.addEventListener("click", () => {
                 if (!chosenPlayer) {
                     option.style.backgroundColor = "#4DA1A9";
@@ -59,19 +62,42 @@ const player = function() {
         return chosenPlayer;
     };
 
-    return { getPlayer, getChosenPlayer };
+    const resetChosenPlayer = function() {
+        chosenPlayer = null
+        options.forEach(option => {option.style.backgroundColor = "#578E7E"})
+    }
+
+    return { getPlayer, getChosenPlayer, resetChosenPlayer };
 
 };
 
 
 const display = function() {
     const squares = document.querySelectorAll(".square")
+    const reset = document.querySelector(".reset")
     const playerModule = player()
     playerModule.getPlayer()
     let currentPlayer = null
     let gameStarted = false
+    let gameEnd = false
     
     
+    reset.addEventListener("click", () => {
+        console.log('Reset clicked');
+        currentPlayer = null;
+        gameStarted = false;
+        gameEnd = false;
+        playerModule.resetChosenPlayer()
+        gameBoard.resetArray()
+
+        squares.forEach(square => {
+            square.style.backgroundImage = ''; 
+            square.disabled = false; 
+            square.style.backgroundColor = '';
+        });
+        playerModule.getPlayer();
+    });
+
     squares.forEach(square => {
         square.addEventListener("click", () => {
 
@@ -87,6 +113,11 @@ const display = function() {
             }
         }
 
+
+        if (gameEnd){
+            return
+        }
+
         const squareID = square.getAttribute('id')
         function renderPlay(currentPlayer) {
             square.style.backgroundImage = `url(./images/${currentPlayer}.svg)`
@@ -98,7 +129,12 @@ const display = function() {
     }
 
         if (gameBoard.checkWin(currentPlayer)) {
-            console.log(`${currentPlayer} wins!`)
+            squares.forEach(square => {
+                square.disabled = true
+                square.style.backgroundColor = "grey"
+        })
+            alert(`${currentPlayer} wins!`)
+            gameEnd = true
             return
         }
 
